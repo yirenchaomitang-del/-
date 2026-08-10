@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F5F3EE">
+<title>现在做什么 · 时间感知助手</title>
+<style>
+:root{
+  --bg:#F5F3EE;--card:#FFF;--text:#202421;--muted:#777D78;
+  --line:#E6E2DA;--green:#2C715F;--soft:#E2EFEA;--warm:#ECE6DA;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+body{min-height:100vh}
+.wrap{width:min(100%,680px);margin:auto;padding:calc(22px + env(safe-area-inset-top)) 17px calc(42px + env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.kicker{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.clock{font-size:56px;font-weight:800;letter-spacing:-.055em;line-height:1;margin-top:8px;font-variant-numeric:tabular-nums}
+.date{font-size:13px;color:var(--muted);margin-top:8px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green);background:var(--soft);padding:7px 10px;border-radius:999px}
+.dot{width:7px;height:7px;background:var(--green);border-radius:50%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:22px;box-shadow:0 14px 38px rgba(40,45,40,.07)}
+.label{font-size:12px;color:var(--green);font-weight:750}
+.title{font-size:31px;line-height:1.16;font-weight:820;letter-spacing:-.035em;margin:8px 0 10px}
+.desc{font-size:15px;line-height:1.72;color:#555C57}
+.action{margin-top:18px;background:var(--soft);border-radius:19px;padding:16px}
+.action small{display:block;color:var(--green);font-weight:750;font-size:11px;margin-bottom:5px}
+.action b{font-size:17px;line-height:1.5}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.metric{background:#FAF9F6;border:1px solid var(--line);border-radius:17px;padding:13px}
+.metric small{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}
+.metric strong{font-size:16px;color:var(--green)}
+.progress{height:7px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:16px}
+.progress span{display:block;height:100%;background:var(--green);width:0;border-radius:999px}
+.rule{margin:14px 0 0;background:var(--warm);border-radius:17px;padding:13px 14px;font-size:12.5px;color:#66635C;line-height:1.65}
+.section{margin:26px 2px 11px;font-size:18px;font-weight:780}
+.timeline{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:72px 1fr;gap:12px;background:rgba(255,255,255,.76);border:1px solid var(--line);border-radius:19px;padding:14px}
+.item.active{background:var(--soft);border-color:#BAD8CE;transform:scale(1.008)}
+.item.past{opacity:.48}
+.time{font-size:13px;font-weight:760;font-variant-numeric:tabular-nums}
+.time span{display:block;font-weight:500;font-size:10px;color:var(--muted);margin-top:4px}
+.task{font-size:15px;font-weight:760;margin-bottom:4px}
+.why{font-size:12px;line-height:1.55;color:var(--muted)}
+.fallback{margin-top:22px;padding:16px;border:1px dashed #CFC9BE;border-radius:18px;display:none}
+.fallback h3{margin:0 0 8px;font-size:14px}
+.fallback p{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 10px}
+select,button{width:100%;font:inherit;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;color:var(--text)}
+button{margin-top:8px;background:var(--green);color:#fff;border:0;font-weight:700}
+.footer{text-align:center;color:var(--muted);font-size:11px;line-height:1.7;padding:28px 8px 4px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div>
+      <div class="kicker">NOW · 现在做什么</div>
+      <div class="clock" id="clock">--:--</div>
+      <div class="date" id="date">正在读取当前时间</div>
+    </div>
+    <div class="live"><span class="dot"></span><span id="status">读取中</span></div>
+  </div>
+
+  <section class="card">
+    <div class="label">这一刻，只做这件事</div>
+    <div class="title" id="title">正在判断当前时间段</div>
+    <div class="desc" id="desc">你不需要先想“今天应该完成什么”，打开页面后直接按照这里开始。</div>
+
+    <div class="action">
+      <small>现在立刻开始</small>
+      <b id="action">先看一下当前几点。</b>
+    </div>
+
+    <div class="progress"><span id="bar"></span></div>
+
+    <div class="metrics">
+      <div class="metric">
+        <small>当前时间段</small>
+        <strong id="range">--</strong>
+      </div>
+      <div class="metric">
+        <small>还有多久切换</small>
+        <strong id="remain">--</strong>
+      </div>
+    </div>
+
+    <div class="rule" id="rule">原则：不补之前错过的时间。你什么时候打开，就从当前这一格开始。</div>
+  </section>
+
+  <div class="section">今天，我替你安排好了</div>
+  <section class="timeline" id="timeline"></section>
+
+  <section class="fallback" id="fallback">
+    <h3>如果时间一直显示「--:--」</h3>
+    <p>说明你当前使用的预览器禁止运行网页脚本。你可以先手动选择现在的小时查看任务，或把文件保存后用 Safari 打开。</p>
+    <select id="manualHour"></select>
+    <button id="manualBtn">按这个时间查看</button>
+  </section>
+
+  <div class="footer">
+    这不是目标管理工具。它只负责在每个时间点，替你减少一次“我现在该做什么”的决定。
+  </div>
+</main>
+
+<script>
+const plan=[
+["00:00","08:00","🌙 睡觉","现在不需要充实自己。睡觉就是此刻唯一任务。","放下手机，关灯，去睡。"],
+["08:00","08:30","☀️ 起床，让身体醒过来","不要一醒来就思考今天要完成什么。先把身体启动。","拉窗帘 → 喝水 → 洗漱 → 换衣服。"],
+["08:30","09:00","🍳 好好吃早餐","用一顿完整的早餐告诉自己：今天正式开始。","坐下来吃早餐，吃完再看别的。"],
+["09:00","10:30","🧠 做一件需要动脑的事","不要求你先制定目标。挑眼前最值得推进的一件正事，连续做一段。","打开电脑，从你最近正在做的学习 / 设计 / 工作内容继续。"],
+["10:30","10:50","🫖 离开屏幕休息","时间感需要身体切换场景。不要一直坐到中午。","站起来，喝水，上厕所，走动几分钟。"],
+["10:50","12:00","💻 再专注一轮","上午还没有结束，再完成一段完整投入。","继续刚才的事情，不开新的坑。"],
+["12:00","13:00","🍚 吃午饭","十二点以后不要再假装上午还没结束。","停下手里的事，去吃饭。"],
+["13:00","14:00","🛋 午休与放空","允许自己什么都不产出。休息是下午能够重新开始的分界线。","躺一会儿、午睡或轻松刷一会儿，但到点结束。"],
+["14:00","15:30","📚 下午第一轮投入","下午重新开机。此时适合学习、作品、工作或处理重要事务。","选手头最明确的一件事，先做 20 分钟再说。"],
+["15:30","16:00","🍎 加餐 + 走动","不要让下午变成一整块模糊时间。人为制造一个明显的断点。","吃点东西、接水、走动，离开当前座位。"],
+["16:00","17:30","✨ 输入与积累","这一段不追求巨大成果，更适合学习新东西、看案例、整理资料。","找一个你真正感兴趣的内容，认真看或练习至少一小段。"],
+["17:30","18:00","🧹 收尾，不再开新任务","帮助大脑意识到白天快结束了。","保存文件、关掉无关页面、简单整理桌面。"],
+["18:00","19:00","🥣 晚饭","现在的任务不是继续努力，而是吃饭。","离开工作位置，好好吃一顿晚饭。"],
+["19:00","20:00","🚶 出门走一走","这是建立时间感非常重要的一段：用天色和身体感受“晚上到了”。","出门散步 20–40 分钟；不方便出门就做轻运动。"],
+["20:00","21:30","🎬 放心娱乐","充实不是一直学习。真正安排好的娱乐，比无意识刷手机更有时间边界。","选一种娱乐：电影、剧、游戏、聊天，只选一个。"],
+["21:30","22:00","🏠 把生活恢复整洁","通过整理环境告诉自己：今天开始进入收尾阶段。","收桌面、衣服、垃圾，做最明显的一处整理。"],
+["22:00","23:00","🚿 洗澡、护肤、慢下来","减少刺激，让身体感知夜晚，而不是直到困得撑不住才睡。","去洗澡、护肤、吹头发，不再开始工作。"],
+["23:00","23:30","📖 做一点安静的事","这半小时不追求成长，只让脑子逐渐降速。","听音乐、阅读几页、随便写两句，任选一种。"],
+["23:30","24:00","📵 结束今天","每天必须有一个清晰的句号，时间才不会全部糊在一起。","把手机放远，准备睡觉。"]
+];
+
+function m(t){let [h,x]=t.split(":").map(Number);return h*60+x}
+function pad(x){return String(x).padStart(2,"0")}
+function draw(){
+ document.getElementById("timeline").innerHTML=plan.map((p,i)=>`
+ <article class="item" data-i="${i}">
+  <div class="time">${p[0]}<span>— ${p[1]}</span></div>
+  <div><div class="task">${p[2]}</div><div class="why">${p[3]}</div></div>
+ </article>`).join("");
+}
+function showAt(totalMinutes, live=true){
+ let idx=plan.findIndex(p=>totalMinutes>=m(p[0]) && totalMinutes<(p[1]==="24:00"?1440:m(p[1])));
+ if(idx<0) idx=0;
+ let p=plan[idx], st=m(p[0]), en=p[1]==="24:00"?1440:m(p[1]);
+ document.getElementById("title").textContent=p[2];
+ document.getElementById("desc").textContent=p[3];
+ document.getElementById("action").textContent=p[4];
+ document.getElementById("range").textContent=p[0]+"–"+p[1];
+ let r=Math.max(0,en-totalMinutes);
+ let hh=Math.floor(r/60), mm=Math.floor(r%60);
+ document.getElementById("remain").textContent=hh?hh+"小时"+mm+"分":mm+"分钟";
+ document.getElementById("bar").style.width=(Math.max(0,Math.min(1,(totalMinutes-st)/(en-st)))*100)+"%";
+ document.querySelectorAll(".item").forEach((e,i)=>{
+   e.classList.toggle("active",i===idx);
+   e.classList.toggle("past",i<idx);
+ });
+}
+function update(){
+ const n=new Date();
+ if(Number.isNaN(n.getTime())) throw new Error("Date unavailable");
+ const h=n.getHours(), mm=n.getMinutes(), s=n.getSeconds();
+ document.getElementById("clock").textContent=pad(h)+":"+pad(mm);
+ let days=["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+ document.getElementById("date").textContent=`${n.getFullYear()}年${n.getMonth()+1}月${n.getDate()}日 · ${days[n.getDay()]}`;
+ document.getElementById("status").textContent="设备时间";
+ showAt(h*60+mm+s/60,true);
+}
+draw();
+
+const sel=document.getElementById("manualHour");
+for(let h=0;h<24;h++){
+ let o=document.createElement("option");
+ o.value=h;o.textContent=pad(h)+":00";
+ sel.appendChild(o);
+}
+document.getElementById("manualBtn").onclick=()=>{
+ let h=Number(sel.value);
+ document.getElementById("clock").textContent=pad(h)+":00";
+ document.getElementById("date").textContent="手动查看模式";
+ document.getElementById("status").textContent="手动时间";
+ showAt(h*60,false);
+};
+
+let ok=false;
+try{
+ update(); ok=true; setInterval(update,1000);
+}catch(e){}
+setTimeout(()=>{
+ if(!ok || document.getElementById("clock").textContent==="--:--"){
+   document.getElementById("fallback").style.display="block";
+   document.getElementById("status").textContent="脚本受限";
+ } else {
+   // 仍保留一个小兜底入口，以便用户主动测试
+   document.getElementById("fallback").style.display="block";
+ }
+},1200);
+</script>
+<noscript>
+<style>.fallback{display:block!important}</style>
+</noscript>
+</body>
+</html>
